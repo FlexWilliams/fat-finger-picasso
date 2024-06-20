@@ -28,6 +28,11 @@
 	const canvasTracking: CanvasTracking = createCanvasTracking();
 
 	/**
+	 * The canvas background color
+	 */
+	let canvasBackgroundColor: string = '#ffffff';
+
+	/**
 	 * The color of the brush
 	 */
 	let brushColor: string = '#263238';
@@ -35,7 +40,7 @@
 	/**
 	 * The width of the brush
 	 */
-	let brushWidth: number = 10;
+	let brushWidth: number = 3;
 
 	/**
 	 * Returns the native HTML Canvas element that is created in this component or undefined if error occurs.
@@ -116,9 +121,49 @@
 			(document.getElementById('fat-finger-picasso-brush-width-input') as HTMLInputElement)?.value
 		); // REFACTOR: plz
 
-		canvas.style.border = '1px solid black'; // TODO: update
-		canvas.width = width;
+		const parentElem = canvas.parentElement;
+		if (parentElem) {
+			canvas.width = parentElem.clientWidth;
+		} else {
+			canvas.width = width;
+		}
+
+		canvas.style.border = '1px solid black'; // TODO: make into component prop or remove
 		canvas.height = height;
+
+		const context = getCanvas2dContext();
+		if (!context) {
+			console.error(`Error setting up the Canvas UX, no context was provided!`);
+			return;
+		}
+
+		context.fillStyle = canvasBackgroundColor;
+		context.fillRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+	}
+
+	function clearCanvas(): void {
+		const canvas = getCanvas();
+		if (!canvas) {
+			console.error(`Error clearing the canvas, no canvas was found!`);
+			return;
+		}
+
+		const context = getCanvas2dContext();
+		if (!context) {
+			console.error(`Error clearing the canvas, no context was provided!`);
+			return;
+		}
+
+		context.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+
+		// Reset BG
+		context.fillStyle = canvasBackgroundColor;
+		context.fillRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+	}
+	
+	function handleClearCanvas(): void {
+		clearCanvas();
+		togglePopover('confirm-clear-canvas');
 	}
 
 	/**
@@ -187,6 +232,34 @@
 		});
 	}
 
+	function togglePopover(popoverId: string): void {
+		const popover = document.getElementById(popoverId) as any;
+		if (!popover) {
+			return;
+		}
+
+		popover?.togglePopover();
+	}
+
+	function downloadImage(): void {
+		const canvas = getCanvas();
+		if (!canvas) {
+			console.error(`Error downloading the canvas image, no canvas found!`);
+			return;
+		}
+
+		const now = new Date();
+		const url = canvas.toDataURL();
+		const imageName = `fat-finger-picasso-image-${now.toLocaleDateString()}_${now.toLocaleTimeString()}.png`;
+		const downloadLink = document.createElement('a');
+		downloadLink.setAttribute('download', imageName);
+		downloadLink.href = url;
+
+		document.body.appendChild(downloadLink);
+		downloadLink.click();
+		document.body.removeChild(downloadLink);
+	}
+
 	/**
 	 * Initializes the canvas.
 	 */
@@ -213,30 +286,87 @@
 >
 
 <section class="canvas-actions">
-	<section class="fat-finger-picasso-color-picker">
-		<label for="fat-finger-picasso-color-picker-input">Pick Color:</label>
-		<input type="color" id="fat-finger-picasso-color-picker-input" bind:value={brushColor} />
-	</section>
+	<section class="canvas-action-row">
+		<section class="fat-finger-picasso-color-picker">
+			<label for="fat-finger-picasso-color-picker-input">Pick Color:</label>
+			<input type="color" id="fat-finger-picasso-color-picker-input" bind:value={brushColor} />
+		</section>
 
-	<section class="fat-finger-picasso-brush-width">
-		<label for="fat-finger-picasso-brush-width-input">Brush Width:</label>
-		<input
-			type="range"
-			id="fat-finger-picasso-brush-width-input"
-			min="1"
-			max="10"
-			bind:value={brushWidth}
-		/>
+		<section class="fat-finger-picasso-brush-width">
+			<label for="fat-finger-picasso-brush-width-input">Brush Width:</label>
+			<input
+				type="range"
+				id="fat-finger-picasso-brush-width-input"
+				min="1"
+				max="10"
+				bind:value={brushWidth}
+			/>
+		</section>
+	</section>
+	<section class="fat-finger-picasso-clear-canavas canvas-action-row">
+		<div id="confirm-clear-canvas" popover="auto" class="popover">
+			<section class="confirmation-popover">
+				<h5 class="confirmation">Are you sure?</h5>
+				<button class="confirmation-button confirmation-yes" on:click={() => handleClearCanvas()}
+					>Yes</button
+				>
+				<button
+					class="confirmation-button confirmation-cancel"
+					on:click={() => togglePopover('confirm-clear-canvas')}>Cancel</button
+				>
+			</section>
+		</div>
+
+		<button popovertarget="confirm-clear-canvas" class="canvas-action-button">Clear</button>
+		<button on:click={() => downloadImage()} class="canvas-action-button">Download</button>
 	</section>
 </section>
 
 <style lang="scss">
 	.canvas {
-		// cursor: url('images/icons/brush_cartoon-hand.png'), auto;
+		cursor: url('images/icons/brush_cartoon-hand.png'), auto;
 	}
 
 	.canvas-actions {
 		display: flex;
+		flex-direction: column;
 		gap: 16px;
+	}
+
+	.canvas-action-button {
+		width: 100px;
+		height: 30px;
+	}
+
+	.canvas-action-row {
+		display: flex;
+		justify-content: space-between;
+	}
+
+	.popover {
+		border: none;
+		padding: 0;
+		width: fit-content;
+		box-shadow: rgba(17, 12, 46, 0.15) 0px 48px 100px 0px;
+	}
+
+	.confirmation-popover {
+		padding: 32px;
+	}
+
+	.confirmation {
+		text-align: center;
+		font-size: 1.25rem;
+	}
+
+	.confirmation-button {
+		width: 80px;
+		height: 30px;
+		border-radius: 30px;
+		border: none;
+	}
+
+	.confirmation-yes {
+		background-color: #bbdefb;
 	}
 </style>
