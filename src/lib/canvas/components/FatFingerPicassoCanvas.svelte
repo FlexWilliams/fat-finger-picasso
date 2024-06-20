@@ -170,8 +170,10 @@
 			}
 
 			const touch = touches[0];
-			canvasTracking.lastX = touch.clientX;
-			canvasTracking.lastY = touch.clientY;
+			canvasTracking.x = touch.clientX - canvas.offsetLeft;
+			canvasTracking.y = touch.clientY - canvas.offsetTop;
+			canvasTracking.lastX = touch.clientX - canvas.offsetLeft;
+			canvasTracking.lastY = touch.clientY - canvas.offsetTop;
 
 			draw('down');
 		});
@@ -206,7 +208,9 @@
 	});
 </script>
 
-<canvas id={canvasId} class="canvas" data-testid={canvasId}>Your browser does not support the canvas element.</canvas>
+<canvas id={canvasId} class="canvas" data-testid={canvasId}
+	>Your browser does not support the canvas element.</canvas
+>
 
 <section class="canvas-actions">
 	<section class="fat-finger-picasso-color-picker">
