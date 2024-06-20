@@ -135,13 +135,52 @@
 			draw('move');
 		});
 
+		canvas.addEventListener('touchmove', (e) => {
+			canvasTracking.lastX = canvasTracking.x;
+			canvasTracking.lastY = canvasTracking.y;
+
+			const touches = e.changedTouches;
+			if (touches.length === 0) {
+				return;
+			}
+
+			const touch = touches[0];
+			canvasTracking.x = touch.clientX - canvas.offsetLeft;
+			canvasTracking.y = touch.clientY - canvas.offsetTop;
+
+			draw('move');
+		});
+
 		canvas.addEventListener('mousedown', () => {
 			draw('down');
 		});
+
 		canvas.addEventListener('mouseup', () => {
 			draw('up');
 		});
+
 		canvas.addEventListener('mouseout', () => {
+			draw('up');
+		});
+
+		canvas.addEventListener('touchstart', (e) => {
+			const touches = e.targetTouches;
+			if (touches.length === 0) {
+				return;
+			}
+
+			const touch = touches[0];
+			canvasTracking.lastX = touch.clientX;
+			canvasTracking.lastY = touch.clientY;
+
+			draw('down');
+		});
+
+		canvas.addEventListener('touchend', () => {
+			draw('up');
+		});
+
+		canvas.addEventListener('touchcancel', () => {
 			draw('up');
 		});
 	}
@@ -167,7 +206,7 @@
 	});
 </script>
 
-<canvas id={canvasId} class="canvas" data-testid={canvasId}></canvas>
+<canvas id={canvasId} class="canvas" data-testid={canvasId}>Your browser does not support the canvas element.</canvas>
 
 <section class="canvas-actions">
 	<section class="fat-finger-picasso-color-picker">
