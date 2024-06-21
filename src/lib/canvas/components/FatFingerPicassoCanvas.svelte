@@ -22,6 +22,11 @@
 	export let height: number = 350;
 
 	/**
+	 * A drawing to upload onto the canvas.
+	 */
+	export let drawing: File | undefined = undefined;
+
+	/**
 	 * Event dispatcher
 	 */
 	const dispatch = createEventDispatcher();
@@ -51,6 +56,15 @@
 	 * Flag indicating that the canvas is exporting the image to the parent component
 	 */
 	let exporting: boolean = false;
+
+	/**
+	 * Listener for the drawing file input from parent component
+	 */
+	$: {
+		if (drawing) {
+			setDrawingOnCanvas();
+		}
+	}
 
 	/**
 	 * Returns the native HTML Canvas element that is created in this component or undefined if error occurs.
@@ -283,6 +297,29 @@
 		});
 	}
 
+	function setDrawingOnCanvas(): void {
+		if (!drawing) {
+			return;
+		}
+
+		const url = URL.createObjectURL(drawing);
+		const image = new Image();
+
+		image.onload = function (e) {
+			URL.revokeObjectURL(url);
+
+			const context = getCanvas2dContext();
+			if (!context) {
+				console.error(`Error setting the drawing on the canvas, no context was provided!`);
+				return;
+			}
+
+			context.drawImage(image, 0, 0);
+		};
+
+		image.src = url;
+	}
+
 	/**
 	 * Initializes the canvas.
 	 */
@@ -340,7 +377,9 @@
 			</section>
 		</div>
 
-		<button popovertarget="confirm-clear-canvas" class="canvas-action-button">Clear</button>
+		<button type="button" popovertarget="confirm-clear-canvas" class="canvas-action-button"
+			>Clear</button
+		>
 		<button class="canvas-action-button" disabled={exporting} on:click={() => handleExport()}
 			>Export</button
 		>
