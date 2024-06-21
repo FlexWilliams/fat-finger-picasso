@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { createEventDispatcher, onMount } from 'svelte';
 	import {
 		createCanvasTracking,
 		type CanvasDrawingType,
@@ -22,6 +22,11 @@
 	export let height: number = 350;
 
 	/**
+	 * Event dispatcher
+	 */
+	const dispatch = createEventDispatcher();
+
+	/**
 	 * The meta object to handle coordinate and drawing info
 	 * // REFACTOR: rename?
 	 */
@@ -41,6 +46,11 @@
 	 * The width of the brush
 	 */
 	let brushWidth: number = 3;
+
+	/**
+	 * Flag indicating that the canvas is exporting the image to the parent component
+	 */
+	let exporting: boolean = false;
 
 	/**
 	 * Returns the native HTML Canvas element that is created in this component or undefined if error occurs.
@@ -90,8 +100,6 @@
 			return;
 		}
 
-		console.debug('Drawing...');
-
 		const context = getCanvas2dContext();
 		if (!context) {
 			console.error(`Unable to draw, no canvas context was provided!`);
@@ -105,8 +113,6 @@
 		context.lineWidth = brushWidth;
 		context.stroke();
 		context.closePath();
-
-		console.debug('Drawing done...');
 	}
 
 	/**
@@ -160,7 +166,7 @@
 		context.fillStyle = canvasBackgroundColor;
 		context.fillRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
 	}
-	
+
 	function handleClearCanvas(): void {
 		clearCanvas();
 		togglePopover('confirm-clear-canvas');
@@ -261,6 +267,23 @@
 	}
 
 	/**
+	 * Emits an event for the consuming application to handle
+	 */
+	function handleExport(): void {
+		exporting = true;
+		const canvas = getCanvas();
+		if (!canvas) {
+			console.error(`Error exporting the canvas image, no canvas found!`);
+			return;
+		}
+
+		canvas.toBlob((blob) => {
+			dispatch('export', blob);
+			exporting = false;
+		});
+	}
+
+	/**
 	 * Initializes the canvas.
 	 */
 	function initCanvas(): void {
@@ -318,6 +341,9 @@
 		</div>
 
 		<button popovertarget="confirm-clear-canvas" class="canvas-action-button">Clear</button>
+		<button class="canvas-action-button" disabled={exporting} on:click={() => handleExport()}
+			>Export</button
+		>
 		<button on:click={() => downloadImage()} class="canvas-action-button">Download</button>
 	</section>
 </section>

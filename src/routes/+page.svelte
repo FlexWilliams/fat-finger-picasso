@@ -1,5 +1,13 @@
 <script lang="ts">
 	import FatFingerPicassoCanvas from '$lib/canvas/components/FatFingerPicassoCanvas.svelte';
+
+	/**
+	 * Here, your application would handle the blob export
+	 * @param drawing the blob data from the HTML canvas (i.e., drawing)
+	 */
+	function handleExport(drawing: Blob): void {
+		console.log(drawing);
+	}
 </script>
 
 <header></header>
@@ -7,7 +15,7 @@
 	<section>
 		<h1>Fat Finger Picasso</h1>
 
-		<FatFingerPicassoCanvas />
+		<FatFingerPicassoCanvas on:export={(evt) => handleExport(evt.detail)} />
 	</section>
 </main>
 <footer></footer>
