@@ -33,11 +33,11 @@
 		<FatFingerPicassoCanvas {drawing} on:export={(evt) => handleExport(evt.detail)} />
 
 		<section class="file-input">
-			<label for="file-input">Upload drawing:</label>
+			<label for="file-input">Upload drawing (.PNG):</label>
 			<input
 				id="file-input"
 				type="file"
-				accept="image/png, image/jpeg"
+				accept="image/png"
 				on:change={(event) => handleImageUpload(event)}
 			/>
 		</section>

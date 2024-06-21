@@ -297,8 +297,25 @@
 		});
 	}
 
+	/**
+	 * TODO: impl
+	 * See: https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html
+	 * @param drawing
+	 */
+	function validateFile(drawing: File): boolean {
+		// TODO: validate file input size!
+		const allowedFileTypes = ['image/png'];
+
+		return allowedFileTypes.includes(drawing.type);
+	}
+
 	function setDrawingOnCanvas(): void {
 		if (!drawing) {
+			return;
+		}
+
+		if (!validateFile(drawing)) {
+			console.error(`Error setting the drawing on the canvas, invalid file type.`);
 			return;
 		}
 
